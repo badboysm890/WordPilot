@@ -1,6 +1,6 @@
 # WordPilot
 
-![WordPilot](https://www.linkpicture.com/q/logo_460.png)
+![WordPilot](wordpilot-thumbnail.png)
 
 # Welcome to WordPilot 🚀📝
 
