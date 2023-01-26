@@ -27,7 +27,7 @@ pipe.scheduler = DPMSolverMultistepScheduler.from_config(pipe.scheduler.config)
 pipe.enable_attention_slicing()
 pipe = pipe.to("mps")
 
-prompt = "Loss of Control of Your Dog's Bladder, realistic, cartoon, vector, illustration, isolated on white background"
+prompt = "angel with wings"
 start = time.time()
 
 start = time.time()

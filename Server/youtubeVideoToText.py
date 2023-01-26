@@ -8,6 +8,7 @@ import os
 from GoogleImageScraper import GoogleImageScraper
 from patch import webdriver_executable
 import urllib
+import platform
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -36,8 +37,12 @@ while not os.path.exists("audio.mp3"):
 
 
 
-if os.path.exists("segments"):
-    os.system("rm -rf segments")
+ if os.path.exists("segments"):
+    if platform.system() == "Windows":
+        # remove entire segments folder
+        os.system("rd /s /q segments")
+    else:
+        os.system("rm -rf segments")
 
 audio = AudioSegment.from_file("audio.mp3")
 segment_length = 30 * 1000

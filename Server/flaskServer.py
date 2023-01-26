@@ -10,6 +10,7 @@ import os
 from GoogleImageScraper import GoogleImageScraper
 from patch import webdriver_executable
 import urllib
+import platform
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 models = T5ForConditionalGeneration.from_pretrained("Michau/t5-base-en-generate-headline")
@@ -38,8 +39,11 @@ def helloWorld():
      continue
  
  if os.path.exists("segments"):
-     os.system("rm -rf segments")
- 
+    if platform.system() == "Windows":
+        # remove entire segments folder
+        os.system("rd /s /q segments")
+    else:
+        os.system("rm -rf segments")
  audio = AudioSegment.from_file("audio.mp3")
  segment_length = 50 * 1000
  
