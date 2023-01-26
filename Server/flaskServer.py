@@ -1,4 +1,3 @@
-from __future__ import unicode_literals
 from flask import Flask, request
 from flask_cors import CORS
 import whisper
@@ -11,6 +10,7 @@ from GoogleImageScraper import GoogleImageScraper
 from patch import webdriver_executable
 import urllib
 import pymongo
+import platform
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 models = T5ForConditionalGeneration.from_pretrained("Michau/t5-base-en-generate-headline")
@@ -19,11 +19,6 @@ models = models.to(device)
 model = whisper.load_model("base")
 client = pymongo.MongoClient("")
 db = client.WordPiloted
-print(db.list_collection_names())
-
-client = pymongo.MongoClient("<>")
-db = client.test
-print(db.list_collection_names())
 
 app = Flask(__name__)
 CORS(app)
@@ -46,7 +41,10 @@ def youtubeToAudioSegments(url):
           continue
       
       if os.path.exists("segments"):
-          os.system("rm -rf segments")
+        if platform.system() == "Windows":
+            os.system("rmdir /s /q segments")
+        else:
+            os.system("rm -rf segments")
       
       audio = AudioSegment.from_file("audio.mp3")
       segment_length = 50 * 1000
@@ -74,6 +72,34 @@ def generateHeadLine(text):
     results = tokenizer.decode(beam_outputs[0])
     return results
 
+def getDataForWeb(video_id):
+ dataForWeb = {}   
+ if  video_id not in db.list_collection_names():
+   youtubeToAudioSegments(url) 
+   for i  in range(len(os.listdir("segments"))):
+      orginal_text = audioToText("segments/"+str(i)+".mp3")
+     
+      dataForWeb[i] = {
+           "heading" : generateHeadLine(orginal_text),
+           "text" :  orginal_text
+       }
+    #   headings.append(dataForWeb[i]["heading"])
+
+      try:
+       db[video_id].insert_one(dataForWeb[i])
+      except: 
+         print("Error in inserting data in database")
+ else:
+        j = 0
+        for i in db[video_id].find({}, {"_id":0}):
+            dataForWeb[j] = {
+                "heading" : i["heading"],
+                "text" : i["text"]
+            }
+            j += 1    
+ return dataForWeb
+   
+
 
 @app.route("/getData", methods=["GET", "POST"])
 def helloWorld():
@@ -84,9 +110,7 @@ def helloWorld():
  except:
   video_id = url.split("/")[-1] 
   
-#  find the video duration and store it in a variable
  duration = os.popen("youtube-dl --get-duration " + url).read().strip()
-#  get video title
  title = os.popen("youtube-dl --get-title " + url).read().strip()
  print(duration, title)
  dataForWeb = {}

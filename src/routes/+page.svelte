@@ -4,21 +4,24 @@
 	import { onMount } from 'svelte';
 	import Quill from 'quill';
 	let quill = null;
+	let videoContent = [];
+	let promise;
+	$: console.log('videoContent', videoContent);
 
-	
-	function createDocument() {
-
+	async function createDocument() {
 		var url = document.querySelector('.youtubeUrl').value;
 		try {
-			var videoId = new URL(url).searchParams.get("v");
-			document.querySelector('.card-img-top').src = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+			var videoId = new URL(url).searchParams.get('v');
+			document.querySelector(
+				'.card-img-top'
+			).src = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
 		} catch (error) {
 			alert('Please enter a valid youtube url');
 			return false;
 		}
-		
+
 		document.querySelector('.spinny').classList.remove('d-none');
-		document.querySelector('.getCard').classList.add('d-none');
+		document.querySelector('#cardDiv').classList.add('d-none');
 		let container = document.getElementById('editor');
 		var myHeaders = new Headers();
 		myHeaders.append('Content-Type', 'application/json');
@@ -27,35 +30,38 @@
 			headers: myHeaders,
 			redirect: 'follow'
 		};
-		fetch(
-			'http://127.0.0.1:5000/getData?url='+url,
-			requestOptions
-		)
+		promise = fetch('http://127.0.0.1:5000/getData?url=' + url, requestOptions)
 			.then((response) => response.text())
 			.then((result) => {
 				let data = JSON.parse(result);
-				console.log(data);
 				if (data == null) {
 					console.log('data is null');
-					document.querySelector('.getCard').classList.remove('d-none');
+					document.querySelector('#cardDiv').classList.remove('d-none');
 					return;
 				} else {
-					// remove the spinny
-					document.querySelector('.spinny').classList.add('d-none');
-					document.querySelector('#editor').classList.remove('d-none');
+					document.querySelector('#title').innerHTML = data['title'];
+					document.querySelector('#editor-div').classList.remove('d-none');
 				}
-				for (const [key, value] of Object.entries(data)) {
-					console.log(`${key}: ${value}`);
-					for (const [keys, values] of Object.entries(value)) {
-						console.log(`${keys}: ${values}`);
-						if (keys == 'heading') {
-							document.querySelector('#editor').innerHTML += `<br><h2>${values}</h2>`;
-						}
-						if (keys == 'text') {
-							document.querySelector('#editor').innerHTML += `<p>${values}</p> <br>`;
-						}
-					}
-				}
+				data = data['data'];
+				// save data as array in videoContent
+				videoContent = Object.values(data);
+				console.log('123', videoContent);
+				return Object.values(data);
+				// for (const [key, value] of Object.entries(data)) {
+				// 	console.log(`${key}: ${value}`);
+				// 	let string = '<br><div contenteditable="true" class="edit-text">';
+				// 	for (const [keys, values] of Object.entries(value)) {
+				// 		console.log(`${keys}: ${values}`);
+				// 		if (keys == 'heading') {
+				// 			string += `<h2>${values}</h2>`;
+				// 		}
+				// 		if (keys == 'text') {
+				// 			string += `<p>${values}</p>`;
+				// 		}
+				// 	}
+				// 	string += '</div><br>';
+				// 	// document.querySelector('#renderHere').innerHTML += string;
+				// }
 
 				quill = new Quill(container, {
 					modules: {
@@ -120,7 +126,7 @@
 		* {
 			font-family: 'Poppins', sans-serif;
 		}
-/* 
+		/* 
 		.bg-dark {
 			background-color: #28304e !important;
 		} */
@@ -142,7 +148,10 @@
 		/* glossy class has a gradient background */
 		.glossy {
 			/*  light pink to purple */
-			background: linear-gradient(90deg, #fbc2eb 0%, #a6c1ee 100%);
+			background: #ff3801;
+			color: white;
+			border: 3px solid black;
+			border-radius: 0px;
 		}
 
 		@media (min-width: 640px) {
@@ -151,10 +160,29 @@
 			}
 		}
 
+		.left-side-bar {
+			width: 20%;
+			/* make sticky while scrolling */
+			position: sticky;
+			top: 0;
+			/* height: screen height */
+			height: 100vh;
+		}
+		.text-black {
+			color: black;
+		}
+
 		/* left-side-bar should hide when on mobile mode */
 		@media (max-width: 640px) {
 			.left-side-bar {
 				display: none;
+			}
+			.right-side-bar {
+				padding: 20px !important;
+			}
+
+			.getCard {
+				height: 450px !important;
 			}
 		}
 
@@ -167,20 +195,128 @@
 				rgba(225, 69, 252, 1) 100%
 			);
 		}
+
+		.bg-theme-dark {
+			bottom: 0;
+			border-bottom: 3px solid black;
+		}
+		.bg-left-grad {
+			border-right: 3px solid black;
+		}
+		.logo-image {
+			height: 50px;
+			width: 180px;
+			object-fit: cover;
+		}
+		.neo-brutalist-button {
+			background-color: #b5ff5b;
+			color: black;
+			border: none;
+			padding: 10px 20px;
+			font-size: 16px;
+			font-weight: bold;
+			text-transform: uppercase;
+			letter-spacing: 2px;
+			transition: background-color 0.2s ease-in-out;
+			margin-right: 15px;
+			-webkit-box-shadow: 8px 8px 0px -2px rgba(0, 0, 0, 1);
+			-moz-box-shadow: 8px 8px 0px -2px rgba(0, 0, 0, 1);
+			box-shadow: 8px 8px 0px -2px rgba(0, 0, 0, 1);
+		}
+		.neo-brutalist-button:hover {
+			background-color: #90b212;
+		}
+
+		.banner-image {
+			width: 100%;
+			-webkit-box-shadow: 8px 8px 0px -2px rgba(0, 0, 0, 1);
+			-moz-box-shadow: 8px 8px 0px -2px rgba(0, 0, 0, 1);
+			box-shadow: 8px 8px 0px -2px rgba(0, 0, 0, 1);
+		}
+
+		.neo-brutalist-button.purple {
+			background-color: #873bff;
+			color: white;
+		}
+
+		.bg-neo-violet {
+			background-color: #873bff;
+		}
+		.w-80 {
+			width: 80%;
+		}
+		.getCard {
+			border: 3px solid black;
+			border-radius: 0px;
+			height: 300px;
+		}
+		.renderHere {
+			border: 3px solid black;
+			border-radius: 0px;
+			height: 300px;
+		}
+
+		.neo-b-input {
+			background-color: white;
+			color: black;
+			border: none;
+			padding: 10px 20px;
+			font-size: 16px;
+			font-weight: bold;
+			letter-spacing: 2px;
+			transition: background-color 0.2s ease-in-out;
+			margin-right: 15px;
+			-webkit-box-shadow: 8px 8px 0px -2px rgba(0, 0, 0, 1);
+			-moz-box-shadow: 8px 8px 0px -2px rgba(0, 0, 0, 1);
+			box-shadow: 8px 8px 0px -2px rgba(0, 0, 0, 1);
+		}
+
+		.right-side-bar {
+			padding: 0 100px;
+		}
+		#editor-div {
+			border: 3px solid black;
+			border-radius: 0px;
+			padding: 10px 20px;
+		}
+
+		#title {
+			background: #b5ff5b;
+			font-weight: bold;
+			padding: 10px;
+			text-align: center;
+			letter-spacing: 2px;
+			transition: background-color 0.2s ease-in-out;
+			margin-right: 15px;
+			-webkit-box-shadow: 8px 8px 0px -2px rgb(0 0 0);
+			-moz-box-shadow: 8px 8px 0px -2px rgba(0, 0, 0, 1);
+			box-shadow: 8px 8px 0px -2px rgb(0 0 0);
+		}
+		.edit-text {
+			padding: 3px;
+		}
+
+		.card-img-top {
+			width: 130%;
+			border: 3px solid black;
+			-webkit-box-shadow: 8px 8px 0px -2px rgb(0 0 0);
+			-moz-box-shadow: 8px 8px 0px -2px rgba(0, 0, 0, 1);
+			box-shadow: 8px 8px 0px -2px rgb(0 0 0);
+			margin-left: 10px;
+		}
 	</style>
 
-	<nav class="navbar navbar-dark bg-dark">
+	<nav class="navbar navbar-dark bg-theme-dark">
 		<span class="navbar-brand p-2">
-			<img src="/logo.png" alt="" width="200" />
+			<img class="logo-image" src="/wordpilot-variant.png" alt="" width="120" />
 		</span>
 
-		<button class="btn btn-outline-light m-2">Sign Up</button>
-	
+		<a class="neo-brutalist-button" href="/login">Login</a>
 	</nav>
 
-	<div>
+	<div class="d-flex">
 		<!-- side bar in the left side in same colour as nav -->
-		<div class="bg-dark left-side-bar" style="height: 100vh; width: 20%; float: left;">
+		<div class="bg-left-grad left-side-bar">
 			<div class="d-flex flex-column">
 				<!-- make the card 20% overflow through the side bar to the other div -->
 				<div class="my-5 card m-3">
@@ -189,19 +325,17 @@
 						src="https://q5n8c8q9.rocketcdn.me/wp-content/uploads/2019/09/YouTube-thumbnail-size-guide-best-practices-top-examples.png.webp"
 						class="card-img-top"
 						alt="..."
-						width="10%"
 					/>
 				</div>
-
 				<!-- another card saying free for 10 days after please sign in -->
 				<div class="my-2 glossy card m-3">
 					<!-- <div class="card-header">Note</div> -->
 					<div class="card-body">
-						<h5 class="card-title">Get Extras</h5>
+						<h5 class="card-title text-black">Get Extras</h5>
 						<p class="card-text">
 							Sign up to get extra features like generating images, audio transpiler and more.
 						</p>
-						<span class="btn btn-primary">Register Now</span>
+						<button class="neo-brutalist-button purple">Register</button>
 					</div>
 				</div>
 			</div>
@@ -209,37 +343,56 @@
 			<!-- create a card of youtube thumbnail -->
 		</div>
 		<!-- center the div inside -->
-		<div class="d-flex justify-content-center">
-			
-			<main class="w-100">
-				<div class="getCard card bg-dark text-white">
-					<div class="card-body h-100">
-						<h2
-							class="card-title
-						"
-						>
-							<b>Youtube</b> to <b>Blog </b> Post 📜
-						</h2>
-						<p class="card-text">Enter a Youtube URL. Lets make a blog post</p>
-
-						<div class="input-group mb-3">
-							<input type="text" class="form-control youtubeUrl" placeholder="Youtube URL" />
-							<!-- onclick call the  createDocument function -->
-							<button class="btn btn-outline-danger" type="button" id="button-addon2" on:click|once={createDocument}>
-								Create
-							</button>
+		<div class="d-flex w-100 justify-content-center right-side-bar">
+			<div class=" flex-column justify-content-center align-items-center">
+				<div id="cardDiv" class="mt-4">
+					<h1 class="mt-5">Convert Your Youtube videos to Blog</h1>
+					<div class="getCard card bg-neo-violet text-white">
+						<div class="card-body h-100 d-flex flex-column flex-md-row">
+							<div>
+								<img class="banner-image" src="/home-banner.png" alt="" />
+							</div>
+							<div
+								class="input-group mb-3 d-flex flex-column p-2 ml-4 align-items-end justify-content-end"
+							>
+								<input type="text" class="neo-b-input youtubeUrl w-100" placeholder="Youtube URL" />
+								<!-- onclick call the  createDocument function -->
+								<button
+									class="neo-brutalist-button w-100 mt-2"
+									type="button"
+									id="button-addon2"
+									on:click|once={createDocument}
+								>
+									Generate
+								</button>
+							</div>
+						</div>
+					</div>
+					<div class="d-flex justify-content-center align-items-center h-100 d-none spinny">
+						<div class="spinner-border text-danger" role="status">
+							<span class="visually-hidden">Loading...</span>
 						</div>
 					</div>
 				</div>
-				<div class="d-flex justify-content-center align-items-center h-100 d-none spinny">
-					<div class="spinner-border text-danger" role="status">
-						<span class="visually-hidden">Loading...</span>
+
+				<!-- <div id="renderHere" class="d-none">
+						<div id="editor" class="d-none" />  
+					</div> -->
+				{#if promise}
+					<div id="editor-div" class=" mt-4">
+						<h1 id="title" class="mt-5" />
+						{#await promise}
+							Loading...
+						{:then contents}
+							{#each contents as content}
+								<p>hello {content.heading}</p>
+							{/each}
+						{:catch error}
+							{error.message}
+						{/await}
 					</div>
-				</div>
-				<div id="editor" class="d-none" />
-			</main>
-			<!-- create a modal that give a signup when clicked on signup -->
-			
+				{/if}
+			</div>
 		</div>
 	</div>
 </body>
