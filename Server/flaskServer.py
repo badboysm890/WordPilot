@@ -21,6 +21,10 @@ client = pymongo.MongoClient("")
 db = client.WordPiloted
 print(db.list_collection_names())
 
+client = pymongo.MongoClient("<>")
+db = client.test
+print(db.list_collection_names())
+
 app = Flask(__name__)
 CORS(app)
 
