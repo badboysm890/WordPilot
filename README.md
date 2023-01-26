@@ -2,7 +2,7 @@
 
 ![WordPilot](https://www.linkpicture.com/q/logo_460.png)
 
-# Welcome to Word❣️Pilot 🚀📝
+# Welcome to WordPilot 🚀📝
 
 This project is designed to help users easily convert YouTube videos into a written blog format, complete with images and the option to export the final product to Medium, WordPress, and markdown (.md) file formats. 🤩
 
