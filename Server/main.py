@@ -1,45 +1,153 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Sun Jul 12 11:02:06 2020
-
-@author: OHyic
-
-"""
-#Import libraries
+from flask import Flask, request
+from flask_cors import CORS
+import whisper
+from pydub import AudioSegment
+import torch
+from transformers import T5ForConditionalGeneration,T5Tokenizer
+import torch
 import os
-import concurrent.futures
-from GoogleImageScraper import GoogleImageScraper
-from patch import webdriver_executable
+import urllib
+import pymongo
+import platform
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+models = T5ForConditionalGeneration.from_pretrained("Michau/t5-base-en-generate-headline")
+tokenizer = T5Tokenizer.from_pretrained("Michau/t5-base-en-generate-headline")
+models = models.to(device)
+model = whisper.load_model("base")
+client = pymongo.MongoClient("")
+db = client.WordPiloted
+
+app = Flask(__name__)
+CORS(app)
+
+def audioToText(audio):
+    audio = whisper.load_audio(audio)
+    audio = whisper.pad_or_trim(audio)
+    mel = whisper.log_mel_spectrogram(audio).to(model.device)
+    _, probs = model.detect_language(mel)
+    options = whisper.DecodingOptions(fp16 = False)
+    result = whisper.decode(model, mel, options)
+    return result.text
+
+def youtubeToAudioSegments(url):
+      if os.path.exists("audio.mp3"):
+       os.remove("audio.mp3")
+      os.system("youtube-dl "+"--write-thumbnail "+"--skip-download "+url + " -o logo")
+      os.system("yt-dlp -f 140 -o audio.mp3 " + url)
+      while not os.path.exists("audio.mp3"):
+          continue
+      
+      if os.path.exists("segments"):
+        if platform.system() == "Windows":
+            os.system("rmdir /s /q segments")
+        else:
+            os.system("rm -rf segments")
+      
+      audio = AudioSegment.from_file("audio.mp3")
+      segment_length = 50 * 1000
+      
+      if not os.path.exists("segments"):
+          os.makedirs("segments")
+      
+      for i, segment in enumerate(audio[::segment_length]):
+          segment.export(f"segments/{i}.mp3", format="mp3")
 
 
-def worker_thread(search_key):
-    image_scraper = GoogleImageScraper(
-        webdriver_path, image_path, search_key, number_of_images, headless, min_resolution, max_resolution)
-    image_urls = image_scraper.find_image_urls()
-    image_scraper.save_images(image_urls, keep_filenames)
+def generateHeadLine(text):
+    ext =  "headline: " + text
+    max_len = 256
+    encoding = tokenizer.encode_plus(text, return_tensors = "pt")
+    input_ids = encoding["input_ids"].to(device)
+    attention_masks = encoding["attention_mask"].to(device)
+    beam_outputs = models.generate(
+        input_ids = input_ids,
+        attention_mask = attention_masks,
+        max_length = 64,
+        num_beams = 3,
+        early_stopping = True,
+    )
+    results = tokenizer.decode(beam_outputs[0])
+    return results
 
-    #Release resources
-    del image_scraper
+def getDataForWeb(video_id):
+ dataForWeb = {}   
+ if  video_id not in db.list_collection_names():
+   youtubeToAudioSegments(url) 
+   for i  in range(len(os.listdir("segments"))):
+      orginal_text = audioToText("segments/"+str(i)+".mp3")
+     
+      dataForWeb[i] = {
+           "heading" : generateHeadLine(orginal_text),
+           "text" :  orginal_text
+       }
+    #   headings.append(dataForWeb[i]["heading"])
+
+      try:
+       db[video_id].insert_one(dataForWeb[i])
+      except: 
+         print("Error in inserting data in database")
+ else:
+        j = 0
+        for i in db[video_id].find({}, {"_id":0}):
+            dataForWeb[j] = {
+                "heading" : i["heading"],
+                "text" : i["text"]
+            }
+            j += 1    
+ return dataForWeb
+   
+
+
+@app.route("/getData", methods=["GET", "POST"])
+def helloWorld():
+ url = request.args.get('url')
+ video_id = ""
+ try:
+  video_id = url.split("=")[1]
+ except:
+  video_id = url.split("/")[-1] 
+  
+ duration = os.popen("youtube-dl --get-duration " + url).read().strip()
+ title = os.popen("youtube-dl --get-title " + url).read().strip()
+ print(duration, title)
+ dataForWeb = {}
+ dataToStore = {}
+ dataToStore["duration"] = str(duration)
+ dataToStore["title"] = str(title)
+
+ if  video_id not in db.list_collection_names():
+   youtubeToAudioSegments(url) 
+   for i  in range(len(os.listdir("segments"))):
+      orginal_text = audioToText("segments/"+str(i)+".mp3")
+     
+      dataForWeb[i] = {
+           "heading" : generateHeadLine(orginal_text),
+           "text" :  orginal_text
+       }
+    #   headings.append(dataForWeb[i]["heading"])
+
+      try:
+       db[video_id].insert_one(dataForWeb[i])
+      except: 
+         print("Error in inserting data in database")
+ else:
+        j = 0
+        for i in db[video_id].find({}, {"_id":0}):
+            dataForWeb[j] = {
+                "heading" : i["heading"],
+                "text" : i["text"]
+            }
+            j += 1
+ # loop through the dataForWeb and remove _id
+ for  i in range(len(dataForWeb)):
+    dataForWeb[i].pop("_id", None)
+ dataToStore["data"] = dataForWeb
+ return dataToStore
+ 
+     
+     
+ 
 
 if __name__ == "__main__":
-    #Define file path
-    webdriver_path = os.path.normpath(os.path.join(os.getcwd(), 'webdriver', webdriver_executable()))
-    image_path = os.path.normpath(os.path.join(os.getcwd(), 'photos'))
-
-    #Add new search key into array ["cat","t-shirt","apple","orange","pear","fish"]
-    search_keys = list(set(["cat", "t-shirt"]))
-
-    #Parameters
-    number_of_images = 5                # Desired number of images
-    headless = True                     # True = No Chrome GUI
-    min_resolution = (0, 0)             # Minimum desired image resolution
-    max_resolution = (9999, 9999)       # Maximum desired image resolution
-    max_missed = 1000                   # Max number of failed images before exit
-    number_of_workers = 1               # Number of "workers" used
-    keep_filenames = False              # Keep original URL image filenames
-
-    #Run each search_key in a separate thread
-    #Automatically waits for all threads to finish
-    #Removes duplicate strings from search_keys
-    with concurrent.futures.ThreadPoolExecutor(max_workers=number_of_workers) as executor:
-        executor.map(worker_thread, search_keys)
+    app.run(debug=True)

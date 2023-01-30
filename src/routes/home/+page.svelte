@@ -106,7 +106,7 @@
 	<style lang="scss">
 		.glossy {
 			/*  light pink to purple */
-			background: $neo-green;
+			background: $neo-red;
 			color: white;
 			border: 3px solid black;
 			border-radius: 0px;

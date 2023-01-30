@@ -17,7 +17,7 @@ So, start using **WordPilot** and Create high-quality blog posts from your YouTu
 To use the project, please follow the instructions in the README file on GitHub.
 
 Thank you for choosing **WordPilot**! If you like it, please give us a star ⭐ on GitHub, it would mean a lot to us.
-
+<!-- 
 
 # Installation of  🤗 hugging-face in linux
 
@@ -65,7 +65,7 @@ Then try importing the library by running the following command:
 
 If the import is successful, you have successfully installed the Hugging Face library on your Linux machine.
 
-That's it! You have successfully installed the Hugging Face library on your Linux machine. You can now start using it to build powerful NLP models and perform tasks such as text generation, question answering, and language translation.
+That's it! You have successfully installed the Hugging Face library on your Linux machine. You can now start using it to build powerful NLP models and perform tasks such as text generation, question answering, and language translation. -->
 
 # Install Svelte
 
