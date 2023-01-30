@@ -1,0 +1,106 @@
+/* Write your global styles here, in SCSS syntax. Variables and mixins from the src/variables.scss file are available here without importing */
+// Global styles
+// theme colors
+
+$neo-black: #000000;
+$neo-white: #ffffff;
+$neo-red: #ff3801;
+$neo-green: #00ff00;
+$neo-blue: #0000ff;
+$neo-yellow: #b5ff5b;
+$neo-orange: #ff8000;
+$neo-purple: #873bff;
+$neo-cyan: #00ffff;
+$neo-pink: #ff0080;
+
+// theme fonts
+
+$neo-font: 'Jost', sans-serif;
+
+// theme font sizes
+
+$neo-font-xxs: 0.5rem;
+$neo-font-xs: 0.75rem;
+$neo-font-sm: 1rem;
+$neo-font-md: 1.25rem;
+$neo-font-lg: 1.5rem;
+$neo-font-xl: 2rem;
+$neo-font-xxl: 2.5rem;
+$neo-font-xxxl: 3rem;
+$neo-font-h1: 4rem;
+$neo-font-h2: 3rem;
+$neo-font-h3: 2.5rem;
+$neo-font-h4: 2rem;
+$neo-font-h5: 1.5rem;
+$neo-font-h6: 1.25rem;
+
+// theme font weights
+
+$neo-font-weight-light: 300;
+$neo-font-weight-normal: 400;
+$neo-font-weight-bold: 700;
+$neo-font-weight-bolder: 900;
+
+// theme font styles
+
+$neo-font-style-italic: italic;
+$neo-font-style-normal: normal;
+
+// theme font decorations
+
+$neo-font-decoration-underline: underline;
+$neo-font-decoration-overline: overline;
+$neo-font-decoration-line-through: line-through;
+$neo-font-decoration-none: none;
+
+// theme font alignments
+
+$neo-font-align-left: left;
+$neo-font-align-center: center;
+$neo-font-align-right: right;
+$neo-font-align-justify: justify;
+
+// theme font transforms
+
+$neo-font-transform-uppercase: uppercase;
+$neo-font-transform-lowercase: lowercase;
+$neo-font-transform-capitalize: capitalize;
+$neo-font-transform-none: none;
+
+// theme font spacing
+
+$neo-font-spacing-normal: normal;
+$neo-font-spacing-wider: 0.25em;
+$neo-font-spacing-widest: 0.5em;
+
+// theme spacing
+
+$neo-spacing-xxs: 0.25rem;
+$neo-spacing-xs: 0.5rem;
+$neo-spacing-sm: 0.75rem;
+$neo-spacing-md: 1rem;
+$neo-spacing-lg: 1.25rem;
+$neo-spacing-xl: 1.5rem;
+$neo-spacing-xxl: 1.75rem;
+$neo-spacing-xxxl: 2rem;
+
+// media queries
+
+$neo-breakpoint-xs: 0px;
+$neo-breakpoint-sm: 576px;
+$neo-breakpoint-md: 768px;
+$neo-breakpoint-lg: 992px;
+$neo-breakpoint-xl: 1200px;
+
+
+
+%neo-box-shadow {
+	-webkit-box-shadow: 8px 8px 0px -2px $neo-black;
+	-moz-box-shadow: 8px 8px 0px -2px $neo-black;
+	box-shadow: 8px 8px 0px -2px $neo-black;
+}
+
+%neo-border {
+	border-radius: 0px;
+	border: 3px solid $neo-black;
+}
